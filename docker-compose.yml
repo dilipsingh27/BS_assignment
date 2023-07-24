@@ -1,0 +1,47 @@
+services:
+  bitespeed_db:
+    container_name: bitespeed_db
+    image: postgres
+    volumes:
+      - ./app_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bitespeed_db
+    ports:
+      - "5434:5432"
+  bitespeed_server:
+    build: ./
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./:/app
+    depends_on:
+      bitespeed_db:
+        condition: service_healthy
+    environment:
+      DB_HOST: bitespeed_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: bitespeed_db
+      DB_PORT: 5432
+      NODE_ENV: docker
+  bitespeed_migration:
+    build:
+      context: ./
+      dockerfile: Dockerfile.migration
+    depends_on:
+      bitespeed_db:
+        condition: service_healthy
+    environment:
+      DB_HOST: bitespeed_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: bitespeed_db
+      DB_PORT: 5432
+      NODE_ENV: migration

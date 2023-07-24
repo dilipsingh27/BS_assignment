@@ -20,7 +20,7 @@ npm install
 docker compose up
 ```
 
-***The exposed port for identifying endpoint is:***
+***The exposed port for identify endpoint is:***
 ```bash
 8080
 ```

@@ -30,12 +30,22 @@ exports.contactIdentify = async (email, phoneNumber) => {
         },
       };
     } else {
-      await Contact.create({
+      // checking if it's already in database, no need to insert again
+      const isExist = await Contact.findOne({
+        where: {
+            [Sequelize.Op.and]: [{ email }, { phoneNumber }],
+        },
+      });
+
+      if(!isExist) {
+        // creating a secondary contact
+        await Contact.create({
         email,
         phoneNumber,
         linkedId: existingContact.id,
-        linkPrecedence: "secondary",
-      });
+        linkPrecedence: 'secondary',
+        });
+      }
 
       const primaryContactId = existingContact.linkPrecedence === "primary"
                               ? existingContact.id : existingContact.linkedId;

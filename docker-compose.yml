@@ -18,7 +18,7 @@ services:
   bitespeed_server:
     build: ./
     ports:
-      - "6000:6000"
+      - "8080:8080"
     volumes:
       - ./:/app
     depends_on:

@@ -3,10 +3,11 @@ const { Sequelize } = require("sequelize");
 
 exports.contactIdentify = async (email, phoneNumber) => {
   try {
-    // checking if contact with requested email or phoneNumber already exists
+    // checking if contact with requested email or phoneNumber already exists and it's primary contact
     const existingContact = await Contact.findOne({
       where: {
         [Sequelize.Op.or]: [{ email }, { phoneNumber }],
+        linkPrecedence: "primary",
       },
     });
 

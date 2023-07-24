@@ -4,7 +4,7 @@ dotenv.config();
 const app = express();
 const { contactRoute} = require("./routes/contact.js");
 
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
 app.use("/", contactRoute);

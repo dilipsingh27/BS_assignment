@@ -12,21 +12,11 @@ docker compose up
 8080
 ```
 
-3. Here's an example `.env` file:
-```bash
-DB_USER="postgres"
-DB_PASSWORD=null
-DB_NAME="dilipsingh"
-DB_HOST="127.0.0.1"
-DB_PORT="5432"
-PORT=8080
-```
-
-4. The endpoint to hit is, It's a **POST** route:
+3. The endpoint to hit is, It's a **POST** route:
 ```bash
 http://localhost:8080/identify
 ```
-5. The request body is of this format: 
+4. The request body is of this format: 
 ```bash
 {
 	"email": "lorraine@hillvalley.edu",

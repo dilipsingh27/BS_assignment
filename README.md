@@ -22,9 +22,6 @@ docker compose up
 
 :::caution
 The exposed port for identifying endpoint is 
-```bash
-8080
-```
 :::
 
 :::caution

@@ -1,10 +1,8 @@
-FROM alpine:latest
 # Install node in alpine
-RUN apk add --update nodejs npm
+FROM node:alpine
 WORKDIR /app
 # Copy dependencies
-COPY package.json package.json
-COPY package-lock.json package-lock.json
+COPY package*.json ./
 # Install dependencies
 RUN npm install
 # Copy app

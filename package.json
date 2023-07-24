@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/index.js",
+    "start": "nodemon index.js",
     "migrate": "npx sequelize-cli db:migrate"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
-    "eslint": "^8.45.0"
+    "eslint": "^8.45.0",
+    "nodemon": "^3.0.1"
   }
 }

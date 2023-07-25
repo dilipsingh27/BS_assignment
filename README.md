@@ -37,3 +37,6 @@ http://localhost:8080/identify
 	"phoneNumber": "123456"
 }
 ```
+
+## I've uploaded my resume in the root directory
+[My_Resume](https://github.com/dilipsingh27/BS_assignment/blob/main/DilipSingh-SDE.pdf) 

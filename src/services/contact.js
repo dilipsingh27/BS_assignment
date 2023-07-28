@@ -39,9 +39,18 @@ const getPrimaryAndSecondaryContacts = async (contact) => {
 
 exports.contactIdentify = async (email, phoneNumber) => {
   try {
-    if (email === null && phoneNumber === null) {
-      throw new Error("Please provide either email or phoneNumber");
+    if ((email === null || email==="") && (phoneNumber === null || phoneNumber==="")) {
+      {
+        return {
+          contacts: {
+            primaryContactId: null,
+            emails: [],
+            phoneNumbers: [],
+            secondaryContactIds: [],
+          },
+      }
     }
+  }
     // checking if contact with requested email or phoneNumber already exists
     const existingContact = await Contact.findOne({
       where: {

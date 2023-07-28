@@ -1,31 +1,68 @@
 const { Contact } = require("../models");
 const { Sequelize } = require("sequelize");
 
+// function to find all secondary Info for a given primary contact recursively
+const getAllSecondaryContacts = async (
+  primaryContactId,
+  secondaryContactsInfo = []
+) => {
+  const secondaryContacts = await Contact.findAll({
+    where: {
+      linkedId: primaryContactId,
+    },
+  });
+
+  for (const secondaryContact of secondaryContacts) {
+    const secondaryContactInfo = {
+      email: secondaryContact.email,
+      phoneNumber: secondaryContact.phoneNumber,
+      id: secondaryContact.id,
+    };
+    secondaryContactsInfo.push(secondaryContactInfo);
+    await getAllSecondaryContacts(secondaryContact.id, secondaryContactsInfo);
+  }
+  return secondaryContactsInfo;
+};
+
+// function to find the primary contact and all secondary contact Info from requested contact
+const getPrimaryAndSecondaryContacts = async (contact) => {
+  if (contact.linkPrecedence === "primary") {
+    const secondaryContactInfo = await getAllSecondaryContacts(contact.id);
+    return { primaryContact: contact, secondaryContactInfo };
+  } else if (contact.linkedId) {
+    const nextContact = await Contact.findByPk(contact.linkedId);
+    return getPrimaryAndSecondaryContacts(nextContact);
+  } else {
+    return { primaryContact: null, secondaryContactInfo: [] };
+  }
+};
+
 exports.contactIdentify = async (email, phoneNumber) => {
   try {
-    // checking if contact with requested email or phoneNumber already exists and it's primary contact
+    if (email === null && phoneNumber === null) {
+      throw new Error("Please provide either email or phoneNumber");
+    }
+    // checking if contact with requested email or phoneNumber already exists
     const existingContact = await Contact.findOne({
       where: {
         [Sequelize.Op.or]: [{ email }, { phoneNumber }],
-        linkPrecedence: "primary",
       },
     });
 
-    // If contact already exists
+    // if contact doesn't exist, creating a new primary contact
     if (!existingContact) {
-      // If contact doesn't exist, creating a new primary contact
       const primaryContact = await Contact.create({
         email,
         phoneNumber,
         linkPrecedence: "primary",
       });
 
-      // Returning the response with the new primary contact details
+      // returning the response with the new primary contact details
       return {
         contact: {
           primaryContactId: primaryContact.id,
-          emails: [email],
-          phoneNumbers: [phoneNumber],
+          emails: email ? [email] : [],
+          phoneNumbers: phoneNumber ? [phoneNumber] : [],
           secondaryContactIds: [],
         },
       };
@@ -33,54 +70,42 @@ exports.contactIdentify = async (email, phoneNumber) => {
       // checking if it's already in database, no need to insert again
       const isExist = await Contact.findOne({
         where: {
-            [Sequelize.Op.and]: [{ email }, { phoneNumber }],
+          [Sequelize.Op.and]: [{ email }, { phoneNumber }],
         },
       });
 
-      if(!isExist) {
-        // creating a secondary contact
-        await Contact.create({
-        email,
-        phoneNumber,
-        linkedId: existingContact.id,
-        linkPrecedence: 'secondary',
-        });
+      if (!isExist && email !== null && phoneNumber !== null) {
+          await Contact.create({
+            email,
+            phoneNumber,
+            linkedId: existingContact.id,
+            linkPrecedence: "secondary",
+          });
       }
-
-      const primaryContactId = existingContact.linkPrecedence === "primary"
-                              ? existingContact.id : existingContact.linkedId;
-      const secondaryContacts = await Contact.findAll({
-        where: {
-          linkedId: primaryContactId,
-        },
-      });
-
-      let emails = [];
-      if (existingContact.email !== email) {
-        emails = secondaryContacts.map((contact) => contact.email);
-      }
-      emails.unshift(existingContact.email);
-
-      let phoneNumbers = [];
-      if (existingContact.phoneNumber !== phoneNumber) {
-        phoneNumbers = secondaryContacts.map((contact) => contact.phoneNumber);
-      }
-      phoneNumbers.unshift(existingContact.phoneNumber);
-
-      const secondaryContactIds = secondaryContacts.map(
-        (contact) => contact.id
-      );
+      // finding the primary contact and secondary contacts Info
+      const { primaryContact, secondaryContactInfo } = await getPrimaryAndSecondaryContacts(existingContact);
+      
+      let emails, phoneNumbers;
+      const secondaryContactEmails = [...new Set(secondaryContactInfo.map((contact) => contact.email))];
+      const uniqueEmails = [...secondaryContactEmails].filter((email) => email !== primaryContact.email);
+      const secondaryContactPhoneNumbers = [...new Set(secondaryContactInfo.map((contact) => contact.phoneNumber))];
+      const uniquePhoneNumbers = [...secondaryContactPhoneNumbers].filter((phoneNumber) => phoneNumber !== primaryContact.phoneNumber);
+      primaryEmail = primaryContact.email ? [primaryContact.email] : [];
+      primaryPhoneNumber = primaryContact.phoneNumber ? [primaryContact.phoneNumber] : [];
+      
+      emails = [...primaryEmail, ...uniqueEmails];
+      phoneNumbers = [...primaryPhoneNumber, ...uniquePhoneNumbers];
 
       return {
         contacts: {
-          primaryContactId,
+          primaryContactId: primaryContact.id,
           emails,
           phoneNumbers,
-          secondaryContactIds,
+          secondaryContactIds: secondaryContactInfo.map((contact) => contact.id),
         },
       };
     }
   } catch (error) {
-    console.log(error);
+    throw new Error(error.message);
   }
 };
